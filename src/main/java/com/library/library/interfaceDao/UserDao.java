@@ -2,11 +2,12 @@ package com.library.library.interfaceDao;
 
 import com.library.library.entity.Book;
 import com.library.library.entity.User;
+import org.springframework.http.ResponseEntity;
 
 public interface UserDao {
-    String createUser(User user);
+    ResponseEntity createUser(User user);
     User findUserById(long id);
-    String deleteUserById(long id);
+    ResponseEntity deleteUserById(long id);
     void removeBookByIdInUser(User user, Book book);
-    User editUser(User user);
+    ResponseEntity editUser(User user);
 }

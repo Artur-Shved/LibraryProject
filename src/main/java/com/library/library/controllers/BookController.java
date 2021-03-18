@@ -5,6 +5,7 @@ import com.library.library.interfaceDao.AuditBook;
 import com.library.library.interfaceDao.BookDao;
 import com.library.library.repository.BookDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/book")
 public class BookController {
+
     @Autowired
     private BookDataRepository repository;
 
@@ -23,7 +25,7 @@ public class BookController {
 
 
     @PostMapping
-    public String createBook(@RequestBody Book book){
+    public ResponseEntity createBook(@RequestBody Book book){
         return dao.createBook(book);
     }
 
@@ -41,11 +43,12 @@ public class BookController {
 
     @GetMapping("/findById/{id}")
     public Book findById(@PathVariable long id){
-        return dao.getBookById(id);
+
+            return dao.getBookById(id);
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteBook(@PathVariable long id){
+    public ResponseEntity deleteBook(@PathVariable long id){
         return dao.deleteBookById(id);
     }
 

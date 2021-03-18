@@ -56,7 +56,7 @@ public class MainController {
 
 
     @GetMapping("/findUser/{bookId}")
-    public Object findByBook(@PathVariable long bookId){
-        return dao.getUserByBookId(bookId);
+    public User findByBook(@PathVariable long bookId){
+            return dao.getUserByBookId(bookId);
     }
 }

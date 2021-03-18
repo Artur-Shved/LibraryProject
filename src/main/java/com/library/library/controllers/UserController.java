@@ -6,6 +6,8 @@ import com.library.library.interfaceDao.BookDao;
 import com.library.library.interfaceDao.UserDao;
 import com.library.library.repository.UserDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +26,7 @@ public class UserController {
 
 
     @PostMapping
-    public String createUser(@RequestBody User user){
+    public ResponseEntity createUser(@RequestBody User user){
         return dao.createUser(user);
     }
 
@@ -40,27 +42,27 @@ public class UserController {
 
 
     @DeleteMapping("/{id}")
-    public String deleteUserByName(@PathVariable long id){
+    public ResponseEntity deleteUserById(@PathVariable long id){
         return dao.deleteUserById(id);
     }
 
     @PostMapping("/removeBooks/{book_id}/{user_id}")
-    public String removeBookById(@PathVariable long book_id, @PathVariable long user_id){
+    public ResponseEntity removeBookById(@PathVariable long book_id, @PathVariable long user_id){
         Book book = bookDao.getBookById(book_id);
         User user = dao.findUserById(user_id);
         try {
             if (!user.getBooks().isEmpty()) {
                 dao.removeBookByIdInUser(user, book);
-                return book.toString() + " was deleted";
+                return new ResponseEntity(book.toString() + " was deleted ", HttpStatus.OK);
             }
         }catch (NullPointerException e){
-            return "Invalid user";
+            return new ResponseEntity("user by this id is null ", HttpStatus.ACCEPTED);
         }
-        return user.toString() + " doesnt have this book";
+        return new ResponseEntity(user.toString() + " doesnt have this book ", HttpStatus.ACCEPTED);
     }
 
     @PostMapping("/editUser")
-    public User editUser(@RequestBody User user){
+    public ResponseEntity editUser(@RequestBody User user){
         return dao.editUser(user);
     }
 
