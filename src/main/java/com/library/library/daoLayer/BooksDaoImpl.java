@@ -1,33 +1,38 @@
 package com.library.library.daoLayer;
 
 import com.library.library.entity.Book;
-import com.library.library.entity.User;
+import com.library.library.exception.BookException;
 import com.library.library.interfaceDao.AuditBook;
 import com.library.library.interfaceDao.BookDao;
 import com.library.library.repository.BookDataRepository;
-import com.library.library.repository.UserDataRepository;
+import com.library.library.service.BookService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Repository
 public class BooksDaoImpl implements BookDao {
-    Logger logger = LoggerFactory.getLogger(BooksDaoImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(BooksDaoImpl.class);
+
+    private final BookDataRepository repository;
+
+    private final AuditBook auditBook;
+
+    private final BookService bookService;
 
     @Autowired
-    private BookDataRepository repository;
-
-    @Autowired
-    private UserDataRepository userDataRepository;
-
-    @Autowired
-    private AuditBook auditBook;
+    public BooksDaoImpl(BookDataRepository repository, AuditBook auditBook, BookService bookService){
+        this.repository = repository;
+        this.auditBook = auditBook;
+        this.bookService = bookService;
+    }
 
 
     @Override
@@ -35,83 +40,70 @@ public class BooksDaoImpl implements BookDao {
         return repository.findAll();
     }
 
+
     public ResponseEntity createBook(Book book){
-        if(!auditBook.isBookCreated(book.getName(), book.getAuthorName(), book.getAuthorSurName())){
-            if(auditBook.isBookElementsNotNull(book)){
-                repository.save(book);
-                logger.info("Book: " + book + " is save");
-                return new ResponseEntity("Book is save", HttpStatus.OK);
-            }else{
-                logger.warn("check your empty fields");
-                return new ResponseEntity("some fields is empty", HttpStatus.ACCEPTED);
-            }
-        }else{
-            logger.warn("Book: " + book + " is already created");
-            return new ResponseEntity(book.getName() + " alredy created", HttpStatus.ACCEPTED);
+        try{
+            saveBook(bookService.tryCreateBook(book));
+            logger.info("Book " + book + " successfully created");
+            return new ResponseEntity("book successfully created", HttpStatus.OK);
+        }catch (BookException e){
+            logger.info(e.getMessage());
+            return new ResponseEntity(e.getMessage(), HttpStatus.CONFLICT);
         }
     }
 
     public Book getBookById(long id){
-        if(auditBook.isBookCreatedById(id)){
-            logger.info("you finded a book");
-            return repository.findById(id).orElseThrow();
-        }else{
-            logger.warn("Book with this id " + id + " doesn't create");
-            throw new NoSuchElementException("Book with this id " + id + " doesnt create");
+        try {
+            return bookService.getBookById(id);
+        }catch (BookException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
 
-    public User getUserByBookId(long id){
-        if(auditBook.isBookCreatedById(id)) {
-            Book book = repository.findById(id).get();
-            if(!auditBook.isBookFreeToTake(book)) {
-                logger.info("user found");
-                return userDataRepository.findByBooks(book);
-            }else{
-                logger.error("book is free to take " + book);
-                 throw new NullPointerException();
-            }
-        }else{
-            logger.error("book with this id doesn't create " + id);
-             throw new NoSuchElementException("book with this id " + id + " doesnt create");
-        }
-    }
 
     public ResponseEntity deleteBookById(long id){
-        if(auditBook.isBookCreatedById(id)){
-            Book book = repository.findById(id).orElseThrow();
-            if(auditBook.isBookFreeToTake(book)) {
-                repository.delete(book);
-                logger.info("user was deleted");
-                return new ResponseEntity("book was deleted", HttpStatus.OK);
-            }else{
-                logger.warn("can't delete this book " + book + " it is the some user");
-                return new ResponseEntity("book is in the some user", HttpStatus.ACCEPTED);
-            }
-        }else{
-            logger.warn("Book by id " + id + " doesn't create");
-            return new ResponseEntity("book by this id doesnt created", HttpStatus.ACCEPTED);
-        }
 
+       try {
+
+           return bookService.deleteBook(id);
+
+       }catch (NoSuchElementException e){
+
+           logger.error("Book with id " + id + " doesn't create");
+           return new ResponseEntity("Book with id " + id + " doesn't create", HttpStatus.NOT_FOUND);
+
+       }catch (BookException e){
+
+           return new ResponseEntity(e.getMessage(), HttpStatus.CONFLICT);
+
+       }
     }
 
-    public Book editBook(Book book){
-        Book oldBook = getBookById(book.getId());
-        if(oldBook != null && !auditBook.isBookCreated(book.getName(), book.getAuthorName(), book.getAuthorSurName())) {
-            logger.info("you saved a book " + book);
-            repository.save(book);
-        }else{
-            logger.warn("book didn't save " + book);
+    public ResponseEntity editBook(Book book){
+
+        try {
+
+             saveBook(bookService.editBookByParams(book));
+             return new ResponseEntity("Book changed " + book, HttpStatus.OK);
+
+        }catch (BookException e){
+            return new ResponseEntity(e.getMessage(), HttpStatus.CONFLICT);
+
         }
-        return oldBook;
     }
 
     public Book findByBookNameAndAuthor(String bookName, String authorName, String authorSurName){
+
         if(auditBook.isBookCreated(bookName, authorName, authorSurName)) {
             return repository.findBookByAuthorNameAndAuthorSurNameAndName(authorName, authorSurName, bookName);
+
         }else{
-            throw new NoSuchElementException("book with this fields doesn't create");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "book with this fields doesn't create");
         }
+    }
+
+    public void saveBook(Book book){
+        repository.save(book);
     }
 
 

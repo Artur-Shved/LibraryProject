@@ -6,8 +6,12 @@ import org.springframework.http.ResponseEntity;
 
 public interface UserDao {
     ResponseEntity createUser(User user);
-    User findUserById(long id);
+    User findUser(long id);
+    User findUser(String name, String surName);
+    User findUser(Book book);
     ResponseEntity deleteUserById(long id);
-    void removeBookByIdInUser(User user, Book book);
     ResponseEntity editUser(User user);
+    ResponseEntity removeBook(Book book);
+    ResponseEntity takeBook(long bookId, long userId);
+    ResponseEntity takeBook(String userName, String userLastName , String bookName, String authorName, String authorSurName);
 }

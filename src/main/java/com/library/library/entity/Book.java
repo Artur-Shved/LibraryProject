@@ -1,6 +1,7 @@
 package com.library.library.entity;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 public class Book {
@@ -50,6 +51,21 @@ public class Book {
 
     public void setBookFree(boolean bookFree) {
         isBookFree = bookFree;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        Book book = (Book) o;
+        if(this.getId() == book.getId() && this.getAuthorName().equals(book.getAuthorName()) &&
+        this.getAuthorSurName().equals(book.getAuthorSurName())){
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, authorName, authorSurName, isBookFree);
     }
 
     @Override

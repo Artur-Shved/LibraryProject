@@ -1,9 +1,9 @@
 package com.library.library.controllers;
 
 import com.library.library.entity.Book;
-import com.library.library.interfaceDao.AuditBook;
 import com.library.library.interfaceDao.BookDao;
-import com.library.library.repository.BookDataRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,14 +14,11 @@ import java.util.List;
 @RequestMapping("/book")
 public class BookController {
 
-    @Autowired
-    private BookDataRepository repository;
+
 
     @Autowired
     private BookDao dao;
 
-    @Autowired
-    AuditBook auditDao;
 
 
     @PostMapping
@@ -31,30 +28,33 @@ public class BookController {
 
     @GetMapping
     public List<Book> findAll(){
-        return repository.findAll();
+        return dao.findAll();
     }
 
     @GetMapping("/findByNameAndAuthor")
-    public Book findByNameAndAuthor(@RequestParam String name, String authorName,
-                                                    String authorSurName){
+    public Book findByNameAndAuthor(@RequestParam String name,
+                                    @RequestParam String authorName,
+                                    @RequestParam String authorSurName){
 
-        return dao.findByBookNameAndAuthor(authorName, authorSurName, name);
+        return dao.findByBookNameAndAuthor(name, authorName, authorSurName);
     }
 
-    @GetMapping("/findById/{id}")
+    @GetMapping("/{id}")
     public Book findById(@PathVariable long id){
 
-            return dao.getBookById(id);
+        return dao.getBookById(id);
     }
 
-    @GetMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity deleteBook(@PathVariable long id){
         return dao.deleteBookById(id);
     }
 
-    @PostMapping("/editBook")
-    public Book editUser(@RequestBody Book book){
-        return dao.editBook(book);
+    @PutMapping
+    public ResponseEntity editBook(@RequestBody Book book){
+
+             return dao.editBook(book);
+
     }
 
 }

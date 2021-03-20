@@ -16,13 +16,8 @@ public class AuditUserImpl implements AuditUser {
     UserDataRepository repository;
 
     public boolean isUserAlredyCreated(String userName, String userSurName){
-        User user = repository.findByUserNameAndSurName(userName, userSurName);
-        if(user == null){
-            return false;
-        }else{
-            user = null;
-            return true;
-        }
+         return repository.findByUserNameAndSurName(userName, userSurName) != null;
+
     }
 
     public boolean isUserAlredyCreated(long id){

@@ -9,10 +9,10 @@ import java.util.List;
 
 public interface BookDao {
     List<Book> findAll();
-    User getUserByBookId(long id);
+    void saveBook(Book book);
     ResponseEntity createBook(Book book);
     ResponseEntity deleteBookById(long id);
     Book getBookById(long id);
-    Book editBook(Book book);
+    ResponseEntity editBook(Book book);
     Book findByBookNameAndAuthor(String authorName, String authorSurName, String bookName);
 }
